@@ -69,12 +69,8 @@
 %global shared 0
 %endif
 
-# Pre build std lib with -race enabled
-%ifarch x86_64
-%global race 1
-%else
+# Disabled due to 1.20 new cache usage, see 1.20 upstream release notes
 %global race 0
-%endif
 
 %ifarch x86_64
 %global gohostarch  amd64
@@ -95,13 +91,14 @@
 %global gohostarch  s390x
 %endif
 
-%global go_api 1.19
-%global version 1.19.13
-%global pkg_release 2
+%global go_api 1.20
+%global version 1.20.10
+%global pkg_release 1
 
 Name:           golang
 Version:        %{version}
 Release:        1%{?dist}
+
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -146,16 +143,17 @@ Patch221:       fix_TestScript_list_std.patch
 
 Patch1939923:   skip_test_rhbz1939923.patch
 
-Patch2: 	disable_static_tests_part1.patch
-Patch3: 	disable_static_tests_part2.patch
-
-Patch227: cmd-link-use-correct-path-for-dynamic-loader-on-ppc6.patch
+Patch2:        disable_static_tests_part1.patch
+Patch3:        disable_static_tests_part2.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
 
 # RPM can't handle symlink -> dir with subpackages, so merge back
 Obsoletes:      %{name}-data < 1.1.1-4
+
+# We don't build golang-race anymore, rhbz#2230599
+Obsoletes:      golang-race < 1.20.0
 
 # These are the only RHEL/Fedora architectures that we compile this package for
 ExclusiveArch:  %{golang_arches}
@@ -246,7 +244,6 @@ popd
 patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/000-initial-setup.patch
 patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/001-initial-openssl-for-fips.patch
 patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/002-strict-fips-runtime-detection.patch
-patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/003-h2-bundle-fix-CVE-2023-39325.patch
 
 # Configure crypto tests
 pushd ../go-go%{version}-%{pkg_release}-openssl-fips
@@ -260,7 +257,6 @@ popd
 %patch221 -p1
 
 %patch1939923 -p1
-%patch227 -p1
 
 cp %{SOURCE2} ./src/runtime/
 
@@ -344,12 +340,11 @@ cwd=$(pwd)
 src_list=$cwd/go-src.list
 pkg_list=$cwd/go-pkg.list
 shared_list=$cwd/go-shared.list
-race_list=$cwd/go-race.list
 misc_list=$cwd/go-misc.list
 docs_list=$cwd/go-docs.list
 tests_list=$cwd/go-tests.list
-rm -f $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list $race_list
-touch $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list $race_list
+rm -f $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list
+touch $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list
 pushd $RPM_BUILD_ROOT%{goroot}
     find src/ -type d -a \( ! -name testdata -a ! -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $src_list
     find src/ ! -type d -a \( ! -ipath '*/testdata/*' -a ! -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $src_list
@@ -378,13 +373,6 @@ pushd $RPM_BUILD_ROOT%{goroot}
     
     find pkg/*_dynlink/ -type d -printf '%%%dir %{goroot}/%p\n' >> $shared_list
     find pkg/*_dynlink/ ! -type d -printf '%{goroot}/%p\n' >> $shared_list
-%endif
-
-%if %{race}
-
-    find pkg/*_race/ -type d -printf '%%%dir %{goroot}/%p\n' >> $race_list
-    find pkg/*_race/ ! -type d -printf '%{goroot}/%p\n' >> $race_list
-
 %endif
 
     find test/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
@@ -529,33 +517,30 @@ cd ..
 %files -f go-shared.list shared
 %endif
 
-%if %{race}
-%files -f go-race.list race
-%endif
-
 %changelog
-* Thu Oct 12 2023 David Benoit <dbenoit@redhat.com> - 1.19.13-1
+* Fri Oct 13 2023 David Benoit <dbenoit@redhat.com> - 1.20.10-1
+- Update to Go 1.20.10
 - Fix CVE-2023-39325
-- Resolves: RHEL-12618
-
-* Wed Aug 30 2023 David Benoit <dbenoit@redhat.com> - 1.19.12-1
-- Update to Go 1.19.12
 - Midstream patches
-- Resolves: rhbz#2223641
+- Resolves: RHEL-12619
 
-* Tue Jun 6 2023 David Benoit <dbenoit@redhat.com> - 1.19.10-1
-- Update to Go 1.19.10
-- Resolves: rhbz#2217623
-- Resolves: rhbz#2217609
-- Resolves: rhbz#2217581
+* Mon Aug 14 2023 Alejandro Sáez <asm@redhat.com> - 1.20.6-2
+- Retire golang-race package
+- Resolves: rhbz#2230599
 
-* Wed May 17 2023 Alejandro Sáez <asm@redhat.com> - 1.19.9-1
-- Rebase to Go 1.19.9
-- Resolves: rhbz#2204473
+* Tue Jul 25 2023 Alejandro Sáez <asm@redhat.com> - 1.20.6-1
+- Rebase to Go 1.20.6
+- Resolves: rhbz#2217596
 
-* Wed Mar 01 2023 David Benoit <dbenoit@redhat.com> - 1.19.6-1
-- Rebase to Go 1.19.6
-- Resolves: rhbz#2174430
+* Mon May 29 2023 Alejandro Sáez <asm@redhat.com> - 1.20.4-1
+- Rebase to Go 1.20.4
+- Resolves: rhbz#2204474
+
+* Tue Apr 11 2023 David Benoit <dbenoit@redhat.com> - 1.20.3-1
+- Rebase to Go 1.20.3
+- Remove race archives
+- Update static tests patches
+- Resolves: rhbz#2185260
 
 * Tue Jan 3 2023 David Benoit <dbenoit@redhat.com> - 1.19.4-2
 - Fix memory leaks in EVP_{sign,verify}_raw
