@@ -92,12 +92,12 @@
 %endif
 
 %global go_api 1.20
-%global version 1.20.10
+%global version 1.20.12
 %global pkg_release 1
 
 Name:           golang
 Version:        %{version}
-Release:        1%{?dist}
+Release:        2%{?dist}
 
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -140,6 +140,7 @@ Requires:       diffutils
 
 # Proposed patch by jcajka https://golang.org/cl/86541
 Patch221:       fix_TestScript_list_std.patch
+Patch222:	skip-test-overlong-message.patch
 
 Patch1939923:   skip_test_rhbz1939923.patch
 
@@ -255,6 +256,7 @@ popd
 %patch3 -p1
 
 %patch221 -p1
+%patch222 -p1
 
 %patch1939923 -p1
 
@@ -518,6 +520,15 @@ cd ..
 %endif
 
 %changelog
+* Wed Dec 13 2023 David Benoit <dbenoit@redhat.com> - 1.20.12-2
+- Fix sources file
+- Related: RHEL-19231
+
+* Tue Dec 12 2023 David Benoit <dbenoit@redhat.com> - 1.20.12-1
+- Update to Go 1.20.12
+- Fix CVE-2023-39326
+- Resolves: RHEL-19231
+
 * Fri Oct 13 2023 David Benoit <dbenoit@redhat.com> - 1.20.10-1
 - Update to Go 1.20.10
 - Fix CVE-2023-39325

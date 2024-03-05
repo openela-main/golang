@@ -1,2 +1,2 @@
-67159be4eeef233482f7960e9a5364f3cb5da8fe889f565aa49c8f0fd092ee45 SOURCES/go1.20.10-1-openssl-fips.tar.gz
-bf8d98f1ebb89f65895252a2771ece9e2d56c38f33bc7365fc4e236d9ab3c705 SOURCES/go1.20.10.tar.gz
+1b4f338d9350ce7fb88bb9368223a0b9caecbce049ac78617f10509f68dce68d SOURCES/go1.20.12-1-openssl-fips.tar.gz
+895824daee8f67b0cc7678f1d99d3259c8d3f9e0fba50eecd4c9f7f7110ffcd5 SOURCES/go1.20.12.tar.gz
