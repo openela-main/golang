@@ -93,7 +93,7 @@
 %endif
 
 %global go_api 1.20
-%global go_version 1.20.10
+%global go_version 1.20.12
 %global version %{go_version}
 %global pkg_release 1
 
@@ -527,6 +527,10 @@ cd ..
 %files -n go-toolset
 
 %changelog
+* Tue Dec 12 2023 David Benoit <dbenoit@redhat.com> - 1.20.12-1
+- Fix CVE-2023-39326
+- Resolves: RHEL-19234
+
 * Fri Oct 13 2023 David Benoit <dbenoit@redhat.com> - 1.20.10-1
 - Update to Go 1.20.10
 - Fix CVE-2023-39325
