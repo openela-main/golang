@@ -99,7 +99,7 @@
 
 Name:           golang
 Version:        %{version}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -148,6 +148,7 @@ Patch1939923:   skip_test_rhbz1939923.patch
 # are incompatible with dlopen in golang-fips
 Patch2: 	disable_static_tests_part1.patch
 Patch3: 	disable_static_tests_part2.patch
+Patch229:	fix-memleak-rsa-ecdh.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -527,6 +528,10 @@ cd ..
 %files -n go-toolset
 
 %changelog
+* Tue Mar 05 2024 David Benoit <dbenoit@redhat.com> - 1.20.12-2
+- Fix CVE-2024-1394
+- Resolves: RHEL-27189
+
 * Tue Dec 12 2023 David Benoit <dbenoit@redhat.com> - 1.20.12-1
 - Fix CVE-2023-39326
 - Resolves: RHEL-19234
