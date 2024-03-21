@@ -97,7 +97,7 @@
 
 Name:           golang
 Version:        %{version}
-Release:        2%{?dist}
+Release:        3%{?dist}
 
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -144,8 +144,10 @@ Patch222:	skip-test-overlong-message.patch
 
 Patch1939923:   skip_test_rhbz1939923.patch
 
-Patch2:        disable_static_tests_part1.patch
-Patch3:        disable_static_tests_part2.patch
+Patch2:		disable_static_tests_part1.patch
+Patch3:		disable_static_tests_part2.patch
+
+Patch229:	fix-memleak-rsa-ecdh.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -258,7 +260,10 @@ popd
 %patch221 -p1
 %patch222 -p1
 
+%patch229 -p1
+
 %patch1939923 -p1
+
 
 cp %{SOURCE2} ./src/runtime/
 
@@ -520,6 +525,10 @@ cd ..
 %endif
 
 %changelog
+* Tue Mar 05 2024 David Benoit <dbenoit@redhat.com> - 1.20.12-3
+- Fix CVE-2024-1394
+- Resolves: RHEL-27928
+
 * Wed Dec 13 2023 David Benoit <dbenoit@redhat.com> - 1.20.12-2
 - Fix sources file
 - Related: RHEL-19231
