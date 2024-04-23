@@ -2,6 +2,8 @@
 
 %global bcond_with strict_fips
 
+%global run_fips_test 0
+
 # build ids are not currently generated:
 # https://code.google.com/p/go/issues/detail?id=5238
 #
@@ -95,11 +97,11 @@
 %global go_api 1.20
 %global go_version 1.20.12
 %global version %{go_version}
-%global pkg_release 1
+%global pkg_release 2
 
 Name:           golang
 Version:        %{version}
-Release:        2%{?dist}
+Release:        4%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -255,10 +257,10 @@ This is the main package for go-toolset.
 pushd ..
 tar -xf %{SOURCE1}
 popd
-patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/000-initial-setup.patch
-patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/001-initial-openssl-for-fips.patch
-patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/002-strict-fips-runtime-detection.patch
 
+for patch in ../go-go%{version}-%{pkg_release}-openssl-fips/patches/*.patch; do
+  patch -p1 < "${patch}"
+done
 
 # Configure crypto tests
 pushd ../go-go%{version}-%{pkg_release}-openssl-fips
@@ -457,6 +459,7 @@ export GO_TEST_RUN=""
 ./run.bash --no-rebuild -v -v -v -k $GO_TEST_RUN
 
 # Run tests with FIPS enabled.
+%if %{run_fips_test}
 export GOLANG_FIPS=1
 export OPENSSL_FORCE_FIPS_MODE=1
 pushd crypto
@@ -469,6 +472,7 @@ popd
 pushd crypto/tls
   go test -v -run "Boring"
 popd
+%endif
 %else
 ./run.bash --no-rebuild -v -v -v -k || :
 %endif
@@ -528,6 +532,15 @@ cd ..
 %files -n go-toolset
 
 %changelog
+* Fri Apr 19 2024 David Benoit <dbenoit@redhat.com> - 1.20.12-4
+- Rebuild for z-stream
+- Related: RHEL-28939
+
+* Wed Apr 10 2024 David Benoit <dbenoit@redhat.com> - 1.20.12-3
+- Fix CVE-2023-45288
+- Resolves: RHEL-28939
+- Temporarily disable FIPS tests (RHELBLD-14822)
+
 * Tue Mar 05 2024 David Benoit <dbenoit@redhat.com> - 1.20.12-2
 - Fix CVE-2024-1394
 - Resolves: RHEL-27189
