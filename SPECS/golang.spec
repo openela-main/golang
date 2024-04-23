@@ -93,11 +93,11 @@
 
 %global go_api 1.20
 %global version 1.20.12
-%global pkg_release 1
+%global pkg_release 2
 
 Name:           golang
 Version:        %{version}
-Release:        3%{?dist}
+Release:        8%{?dist}
 
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -244,9 +244,10 @@ Requires:       %{name} = %{version}-%{release}
 pushd ..
 tar -xf %{SOURCE1}
 popd
-patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/000-initial-setup.patch
-patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/001-initial-openssl-for-fips.patch
-patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/002-strict-fips-runtime-detection.patch
+
+for patch in ../go-go%{version}-%{pkg_release}-openssl-fips/patches/*.patch; do
+  patch -p1 < "${patch}"
+done
 
 # Configure crypto tests
 pushd ../go-go%{version}-%{pkg_release}-openssl-fips
@@ -525,9 +526,17 @@ cd ..
 %endif
 
 %changelog
-* Tue Mar 05 2024 David Benoit <dbenoit@redhat.com> - 1.20.12-3
+* Wed Apr 10 2024 David Benoit <dbenoit@redhat.com> - 1.20.12-8
+- Update sources file
+- Related: RHEL-27928
+
+* Tue Apr 09 2024 David Benoit <dbenoit@redhat.com> - 1.20.12-7
 - Fix CVE-2024-1394
 - Resolves: RHEL-27928
+
+* Mon Apr 08 2024 Derek Parker <deparker@redhat.com> - 1.20.12-6
+- Fix CVE-2023-45288
+- Resolves: RHEL-31914
 
 * Wed Dec 13 2023 David Benoit <dbenoit@redhat.com> - 1.20.12-2
 - Fix sources file
