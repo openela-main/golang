@@ -93,13 +93,13 @@
 %endif
 
 %global go_api 1.21
-%global go_version 1.21.7
+%global go_version 1.21.9
 %global version %{go_version}
 %global pkg_release 1
 
 Name:           golang
 Version:        %{version}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -140,6 +140,7 @@ Requires:       diffutils
 
 # Proposed patch by jcajka https://golang.org/cl/86541
 Patch221:       fix_TestScript_list_std.patch
+Patch229:       fix-memleak-setupRSA.patch
 
 Patch1939923:   skip_test_rhbz1939923.patch
 
@@ -529,6 +530,17 @@ cd ..
 %files -n go-toolset
 
 %changelog
+* Mon Apr 15 2024 David Benoit <dbenoit@redhat.com> - 1.21.9-2
+- Rebuilt for z-stream
+- Related: RHEL-24312
+- Related: RHEL-28940
+
+* Fri Apr 5 2024 Archana Ravindar <aravinda@redhat.com> - 1.21.9-1
+- Fix CVE-2024-1394
+- Fix CVE-2023-45288
+- Resolves RHEL-24312
+- Resolves RHEL-28940
+
 * Fri Feb 09 2024 Alejandro Sáez <asm@redhat.com> - 1.21.7-1
 - Rebase to Go 1.21.7
 - Set GOTOOLCHAIN to local
