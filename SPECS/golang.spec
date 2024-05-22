@@ -92,12 +92,12 @@
 %endif
 
 %global go_api 1.21
-%global version 1.21.7
+%global version 1.21.9
 %global pkg_release 1
 
 Name:           golang
 Version:        %{version}
-Release:        2%{?dist}
+Release:        1%{?dist}
 
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -518,6 +518,10 @@ cd ..
 %endif
 
 %changelog
+* Fri Apr 12 2024 David Benoit <dbenoit@redhat.com> - 1.21.9-1
+- Fix CVE-2023-45288
+- Resolves: RHEL-31915
+
 * Mon Apr 1 2024 Archana Ravindar <aravinda@redhat.com> - 1.21.7-2
 - Fix CVE-2024-1394
 - Resolves RHEL-24300
