@@ -56,7 +56,7 @@
 %endif
 
 # Controls what ever we fail on failed tests
-%ifarch x86_64 %{arm} aarch64 ppc64le s390x
+%ifarch x86_64 %{arm} ppc64le s390x
 %global fail_on_tests 1
 %else
 %global fail_on_tests 0
@@ -91,13 +91,13 @@
 %global gohostarch  s390x
 %endif
 
-%global go_api 1.20
-%global version 1.20.12
-%global pkg_release 2
+%global go_api 1.21
+%global version 1.21.7
+%global pkg_release 1
 
 Name:           golang
 Version:        %{version}
-Release:        8%{?dist}
+Release:        2%{?dist}
 
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -137,17 +137,16 @@ Requires:       %{name}-src = %{version}-%{release}
 Requires:       openssl-devel
 Requires:       diffutils
 
-
 # Proposed patch by jcajka https://golang.org/cl/86541
 Patch221:       fix_TestScript_list_std.patch
-Patch222:	skip-test-overlong-message.patch
+Patch229:       fix-memleak-setupRSA.patch
 
 Patch1939923:   skip_test_rhbz1939923.patch
 
 Patch2:		disable_static_tests_part1.patch
 Patch3:		disable_static_tests_part2.patch
-
-Patch229:	fix-memleak-rsa-ecdh.patch
+Patch4:		skip-test-overlong-message.patch
+Patch5:		modify_go.env.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -244,10 +243,9 @@ Requires:       %{name} = %{version}-%{release}
 pushd ..
 tar -xf %{SOURCE1}
 popd
-
-for patch in ../go-go%{version}-%{pkg_release}-openssl-fips/patches/*.patch; do
-  patch -p1 < "${patch}"
-done
+patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/000-initial-setup.patch
+patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/001-initial-openssl-for-fips.patch
+patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/002-strict-fips-runtime-detection.patch
 
 # Configure crypto tests
 pushd ../go-go%{version}-%{pkg_release}-openssl-fips
@@ -255,16 +253,9 @@ ln -s ../go-go%{version} go
 ./scripts/configure-crypto-tests.sh
 popd
 
-%patch2 -p1
-%patch3 -p1
+%autopatch -p1
 
-%patch221 -p1
-%patch222 -p1
-
-%patch229 -p1
-
-%patch1939923 -p1
-
+sed -i '1s/$/ (%{?rhel:Red Hat} %{version}-%{release})/' VERSION
 
 cp %{SOURCE2} ./src/runtime/
 
@@ -335,7 +326,7 @@ rm -rf pkg/bootstrap/bin
 
 # install everything into libdir (until symlink problems are fixed)
 # https://code.google.com/p/go/issues/detail?id=5830
-cp -apv api bin doc lib pkg src misc test VERSION \
+cp -apv api bin doc lib pkg src misc test go.env VERSION \
    $RPM_BUILD_ROOT%{goroot}
 
 # bz1099206
@@ -520,38 +511,44 @@ cd ..
 %files -f go-pkg.list bin
 %{_bindir}/go
 %{_bindir}/gofmt
+%{goroot}/go.env
 
 %if %{shared}
 %files -f go-shared.list shared
 %endif
 
 %changelog
-* Wed Apr 10 2024 David Benoit <dbenoit@redhat.com> - 1.20.12-8
-- Update sources file
-- Related: RHEL-27928
-
-* Tue Apr 09 2024 David Benoit <dbenoit@redhat.com> - 1.20.12-7
+* Mon Apr 1 2024 Archana Ravindar <aravinda@redhat.com> - 1.21.7-2
 - Fix CVE-2024-1394
-- Resolves: RHEL-27928
+- Resolves RHEL-24300
 
-* Mon Apr 08 2024 Derek Parker <deparker@redhat.com> - 1.20.12-6
-- Fix CVE-2023-45288
-- Resolves: RHEL-31914
+* Tue Feb 13 2024 Alejandro Sáez <asm@redhat.com> - 1.21.7-1
+- Rebase to Go 1.21.7
+- Add release information
+- Set GOTOOLCHAIN to local
+- Skip TestOverlongMessagePKCS1v15
+- Resolves: RHEL-24082
+- Resolves: RHEL-18363
+- Resolves: RHEL-18382
 
-* Wed Dec 13 2023 David Benoit <dbenoit@redhat.com> - 1.20.12-2
-- Fix sources file
-- Related: RHEL-19231
+* Wed Nov 08 2023 David Benoit <dbenoit@redhat.com> - 1.21.3-4
+- Do not remove GOPROXY/GOSUMDB
+- Related: RHEL-12620
 
-* Tue Dec 12 2023 David Benoit <dbenoit@redhat.com> - 1.20.12-1
-- Update to Go 1.20.12
-- Fix CVE-2023-39326
-- Resolves: RHEL-19231
+* Thu Nov 02 2023 David Benoit <dbenoit@redhat.com> - 1.21.3-3
+- Fix go.env in Go 1.21
+- Related: RHEL-12620
 
-* Fri Oct 13 2023 David Benoit <dbenoit@redhat.com> - 1.20.10-1
-- Update to Go 1.20.10
-- Fix CVE-2023-39325
-- Midstream patches
-- Resolves: RHEL-12619
+* Tue Oct 31 2023 Archana Ravindar <aravinda@redhat.com> - 1.21.3-2
+- Rebase disable_static_tests_part2.patch to Go 1.21.3
+- Add missing strict fips runtime detection patch
+- Temporarily disable FIPS tests on aarch64 due to builder kernel bugs
+- Remove fix-memory-leak patch as it is fixed upstream
+- Resolves: RHEL-12620
+
+* Fri Oct 20 2023 Archana Ravindar <aravinda@redhat.com> - 1.21.3-1
+- Rebase Go to 1.21.3
+- Resolves: RHEL-12620
 
 * Mon Aug 14 2023 Alejandro Sáez <asm@redhat.com> - 1.20.6-2
 - Retire golang-race package
