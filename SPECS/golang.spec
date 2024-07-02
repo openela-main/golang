@@ -92,7 +92,7 @@
 %endif
 
 %global go_api 1.21
-%global version 1.21.9
+%global version 1.21.11
 %global pkg_release 1
 
 Name:           golang
@@ -145,7 +145,6 @@ Patch1939923:   skip_test_rhbz1939923.patch
 
 Patch2:		disable_static_tests_part1.patch
 Patch3:		disable_static_tests_part2.patch
-Patch4:		skip-test-overlong-message.patch
 Patch5:		modify_go.env.patch
 
 # Having documentation separate was broken
@@ -243,9 +242,12 @@ Requires:       %{name} = %{version}-%{release}
 pushd ..
 tar -xf %{SOURCE1}
 popd
-patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/000-initial-setup.patch
-patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/001-initial-openssl-for-fips.patch
-patch -p1 < ../go-go%{version}-%{pkg_release}-openssl-fips/patches/002-strict-fips-runtime-detection.patch
+patch_dir="../go-go%{version}-%{pkg_release}-openssl-fips/patches"
+# Add --no-backup-if-mismatch option to avoid creating .orig temp files
+for p in "$patch_dir"/*.patch; do
+       echo "Applying $p"
+      patch -p1 --no-backup-if-mismatch < $p
+done
 
 # Configure crypto tests
 pushd ../go-go%{version}-%{pkg_release}-openssl-fips
@@ -518,6 +520,14 @@ cd ..
 %endif
 
 %changelog
+* Wed Jun 12 2024 Archana Ravindar <aravinda@redhat.com> - 1.21.11-1
+- Update to Go1.21.11 to address CVE-2024-24789 and CVE-2024-24790
+- Resolves: RHEL-40274
+
+* Thu May 23 2024 David Benoit <dbenoit@redhat.com> - 1.21.10
+- Update to Go 1.21.10
+- Resolves: RHEL-36993
+
 * Fri Apr 12 2024 David Benoit <dbenoit@redhat.com> - 1.21.9-1
 - Fix CVE-2023-45288
 - Resolves: RHEL-31915
