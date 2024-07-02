@@ -93,7 +93,7 @@
 %endif
 
 %global go_api 1.21
-%global go_version 1.21.10
+%global go_version 1.21.11
 %global version %{go_version}
 %global pkg_release 1
 
@@ -534,6 +534,10 @@ cd ..
 %files -n go-toolset
 
 %changelog
+* Wed Jun 12 2024 Archana Ravindar <aravinda@redhat.com> - 1.21.11-1
+- Update to Go 1.21.11 that fixes CVE-2024-24789 and CVE-2024-24790
+- Resolves: RHEL-40275
+
 * Thu May 23 2024 David Benoit <dbenoit@redhat.com> - 1.21.10-1
 - Update to Go 1.21.10
 - Resolves: RHEL-36988
