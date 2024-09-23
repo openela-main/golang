@@ -92,12 +92,12 @@
 %endif
 
 %global go_api 1.21
-%global version 1.21.11
-%global pkg_release 1
+%global version 1.21.13
+%global pkg_release 4
 
 Name:           golang
 Version:        %{version}
-Release:        1%{?dist}
+Release:        2%{?dist}
 
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -139,7 +139,6 @@ Requires:       diffutils
 
 # Proposed patch by jcajka https://golang.org/cl/86541
 Patch221:       fix_TestScript_list_std.patch
-Patch229:       fix-memleak-setupRSA.patch
 
 Patch1939923:   skip_test_rhbz1939923.patch
 
@@ -520,6 +519,18 @@ cd ..
 %endif
 
 %changelog
+* Mon Sep 16 2024 David Benoit <dbenoit@redhat.com> - 1.21.13-2
+- Rebuild Go with CVE Fixes
+- Remove fix-memleak-setupRSA.patch (exists upstream)
+- Resolves: RHEL-58223
+- Resolves: RHEL-57961
+- Resolves: RHEL-57847
+- Resolves: RHEL-57860
+
+* Wed Aug 21 2024 Archana <aravinda@redhat.com> - 1.21.13-1
+- Update to Go1.21.13 to fix CVE-2024-24791
+- Resolves: RHEL-47198
+
 * Wed Jun 12 2024 Archana Ravindar <aravinda@redhat.com> - 1.21.11-1
 - Update to Go1.21.11 to address CVE-2024-24789 and CVE-2024-24790
 - Resolves: RHEL-40274
