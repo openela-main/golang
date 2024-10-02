@@ -97,7 +97,7 @@
 
 Name:           golang
 Version:        %{version}
-Release:        2%{?dist}
+Release:        3%{?dist}
 
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -145,6 +145,8 @@ Patch1939923:   skip_test_rhbz1939923.patch
 Patch2:		disable_static_tests_part1.patch
 Patch3:		disable_static_tests_part2.patch
 Patch5:		modify_go.env.patch
+
+Patch231:	evp-digest-sign-final.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -519,6 +521,10 @@ cd ..
 %endif
 
 %changelog
+* Tue Oct 01 2024 David Benoit <dbenoit@redhat.com> - 1.21.13-3
+- Add evp-digest-sign-final.patch
+- Resolves: RHEL-61109
+
 * Mon Sep 16 2024 David Benoit <dbenoit@redhat.com> - 1.21.13-2
 - Rebuild Go with CVE Fixes
 - Remove fix-memleak-setupRSA.patch (exists upstream)
