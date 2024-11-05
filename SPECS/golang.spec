@@ -91,13 +91,13 @@
 %global gohostarch  s390x
 %endif
 
-%global go_api 1.21
-%global version 1.21.13
-%global pkg_release 4
+%global go_api 1.22
+%global version 1.22.7
+%global pkg_release 1
 
 Name:           golang
 Version:        %{version}
-Release:        3%{?dist}
+Release:        1%{?dist}
 
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -145,8 +145,7 @@ Patch1939923:   skip_test_rhbz1939923.patch
 Patch2:		disable_static_tests_part1.patch
 Patch3:		disable_static_tests_part2.patch
 Patch5:		modify_go.env.patch
-
-Patch231:	evp-digest-sign-final.patch
+Patch7:		skip_TestCrashDumpsAllThreads.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -246,8 +245,8 @@ popd
 patch_dir="../go-go%{version}-%{pkg_release}-openssl-fips/patches"
 # Add --no-backup-if-mismatch option to avoid creating .orig temp files
 for p in "$patch_dir"/*.patch; do
-       echo "Applying $p"
-      patch -p1 --no-backup-if-mismatch < $p
+	echo "Applying $p"
+	patch -p1 --no-backup-if-mismatch < $p
 done
 
 # Configure crypto tests
@@ -453,11 +452,12 @@ export GO_TEST_RUN=""
 
 # Run tests with FIPS enabled.
 export GOLANG_FIPS=1
+export OPENSSL_FORCE_FIPS_MODE=1
 pushd crypto
   # Run all crypto tests but skip TLS, we will run FIPS specific TLS tests later
-  go test $(go list ./... | grep -v tls) -v
+  go test -timeout 50m $(go list ./... | grep -v tls) -v
   # Check that signature functions have parity between boring and notboring
-  CGO_ENABLED=0 go test $(go list ./... | grep -v tls) -v
+  CGO_ENABLED=0 go test -timeout 50m $(go list ./... | grep -v tls) -v
 popd
 # Run all FIPS specific TLS tests
 pushd crypto/tls
@@ -521,37 +521,49 @@ cd ..
 %endif
 
 %changelog
-* Tue Oct 01 2024 David Benoit <dbenoit@redhat.com> - 1.21.13-3
-- Add evp-digest-sign-final.patch
-- Resolves: RHEL-61109
-
-* Mon Sep 16 2024 David Benoit <dbenoit@redhat.com> - 1.21.13-2
-- Rebuild Go with CVE Fixes
-- Remove fix-memleak-setupRSA.patch (exists upstream)
+* Mon Sep 16 2024 David Benoit <dbenoit@redhat.com> - 1.22.7-1
+- Update to Go 1.22.7
 - Resolves: RHEL-58223
 - Resolves: RHEL-57961
 - Resolves: RHEL-57847
 - Resolves: RHEL-57860
 
-* Wed Aug 21 2024 Archana <aravinda@redhat.com> - 1.21.13-1
-- Update to Go1.21.13 to fix CVE-2024-24791
-- Resolves: RHEL-47198
+* Fri Sep 06 2024 Archana <aravinda@redhat.com> - 1.22.5-3
+- Update fix that loads Openssl in FIPS mode if fips==1
+- Related: RHEL-52485
 
-* Wed Jun 12 2024 Archana Ravindar <aravinda@redhat.com> - 1.21.11-1
-- Update to Go1.21.11 to address CVE-2024-24789 and CVE-2024-24790
-- Resolves: RHEL-40274
+* Mon Sep 02 2024 Archana <aravinda@redhat.com> - 1.22.5-2
+- Include fix that loads Openssl only in FIPS mode to avoid panic
+- Resolves: RHEL-52485
 
-* Thu May 23 2024 David Benoit <dbenoit@redhat.com> - 1.21.10
-- Update to Go 1.21.10
-- Resolves: RHEL-36993
+* Fri Jul 12 2024 Archana <aravinda@redhat.com> - 1.22.5-1
+- Rebase to Go1.22.5 to fix CVE-2024-24791
+- Resolves: RHEL-46972
 
-* Fri Apr 12 2024 David Benoit <dbenoit@redhat.com> - 1.21.9-1
-- Fix CVE-2023-45288
-- Resolves: RHEL-31915
+* Fri Jun 07 2024 Archana <aravinda@redhat.com> - 1.22.4-1
+- Addresses CVEs-2024-24789 and CVE-2024-24790
+- Resolves: RHEL-40157
 
-* Mon Apr 1 2024 Archana Ravindar <aravinda@redhat.com> - 1.21.7-2
-- Fix CVE-2024-1394
-- Resolves RHEL-24300
+* Thu May 30 2024 Derek Parker <deparker@redhat.com> - 1.22.3-3
+- Update openssl backend
+- Resolves: RHEL-36102
+
+* Thu May 23 2024 Derek Parker <deparker@redhat.com> - 1.22.3-2
+- Restore HashSign / HashVerify API
+- Resolves: RHEL-35884
+
+* Thu May 23 2024 David Benoit <dbenoit@redhat.com> - 1.22.3-1
+- Update to Go 1.22.3
+- Resolves: RHEL-35884
+- Resolves: RHEL-35075
+- Resolves: RHEL-35632
+- Resolves: RHEL-35901
+
+* Thu May 02 2024 Alejandro Sáez <asm@redhat.com> - 1.22.2-1
+- Rebase to 1.22.2
+- Re-enable CGO
+- Skip TestCrashDumpsAllThreads
+- Resolves: RHEL-33157
 
 * Tue Feb 13 2024 Alejandro Sáez <asm@redhat.com> - 1.21.7-1
 - Rebase to Go 1.21.7
