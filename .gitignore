@@ -1,2 +1,3 @@
-SOURCES/go1.21.13-4-openssl-fips.tar.gz
-SOURCES/go1.21.13.tar.gz
+SOURCES/compiler-rt-18.1.8.src.tar.xz
+SOURCES/go1.22.7-1-openssl-fips.tar.gz
+SOURCES/go1.22.7.tar.gz
