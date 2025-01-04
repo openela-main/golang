@@ -93,7 +93,7 @@
 %endif
 
 %global go_api 1.22
-%global go_version 1.22.7
+%global go_version 1.22.9
 %global version %{go_version}
 %global pkg_release 1
 
@@ -583,6 +583,14 @@ cd ..
 %endif
 
 %changelog
+* Thu Nov 14 2024 David Benoit <dbenoit@redhat.com> - 1.22.9-2
+- Fix sources
+- Related: RHEL-67672
+
+* Thu Nov 14 2024 David Benoit <dbenoit@redhat.com> - 1.22.9-1
+- Update to Go 1.22.9
+- Resolves: RHEL-67672
+
 * Thu Oct 03 2024 Archana <aravinda@redhat.com> - 1.22.7-2
 - Rebuilt to use right build target
 - Related: RHEL-57867
