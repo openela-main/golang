@@ -1,48 +1,35 @@
-From 24aac090069f79307aeceb8362f60a3cc5e60f7f Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Alejandro=20S=C3=A1ez?= <asm@redhat.com>
-Date: Fri, 3 May 2024 17:25:19 +0200
-Subject: [PATCH] disable_static_tests_part1
-
----
- src/crypto/internal/backend/nobackend.go                 | 4 ++--
- src/crypto/internal/backend/openssl.go                   | 4 ++--
- src/crypto/internal/boring/goboringcrypto.h              | 1 +
- src/crypto/internal/boring/syso/syso.go                  | 2 +-
- src/vendor/github.com/golang-fips/openssl/v2/goopenssl.h | 1 +
- 5 files changed, 7 insertions(+), 5 deletions(-)
-
 diff --git a/src/crypto/internal/backend/nobackend.go b/src/crypto/internal/backend/nobackend.go
-index 5b0e356dff..a2e17f7fa5 100644
+index 95c2cdc..88df624 100644
 --- a/src/crypto/internal/backend/nobackend.go
 +++ b/src/crypto/internal/backend/nobackend.go
 @@ -2,8 +2,8 @@
  // Use of this source code is governed by a BSD-style
  // license that can be found in the LICENSE file.
  
--//go:build !linux || !cgo || android || cmd_go_bootstrap || msan || no_openssl
--// +build !linux !cgo android cmd_go_bootstrap msan no_openssl
-+//go:build !linux || !cgo || android || cmd_go_bootstrap || msan || no_openssl || static || static
-+// +build !linux !cgo android cmd_go_bootstrap msan no_openssl static static
+-//go:build !linux || !cgo || android || cmd_go_bootstrap || msan || no_openssl || purego
+-// +build !linux !cgo android cmd_go_bootstrap msan no_openssl purego
++//go:build !linux || !cgo || android || cmd_go_bootstrap || msan || no_openssl || purego || static
++// +build !linux !cgo android cmd_go_bootstrap msan no_openssl purego static
  
  package backend
  
 diff --git a/src/crypto/internal/backend/openssl.go b/src/crypto/internal/backend/openssl.go
-index 3d3a9a36ee..7e32d3b0fa 100644
+index 297c3cb..1a4fa10 100644
 --- a/src/crypto/internal/backend/openssl.go
 +++ b/src/crypto/internal/backend/openssl.go
 @@ -2,8 +2,8 @@
  // Use of this source code is governed by a BSD-style
  // license that can be found in the LICENSE file.
  
--//go:build linux && cgo && !android && !gocrypt && !cmd_go_bootstrap && !msan && !no_openssl
--// +build linux,cgo,!android,!gocrypt,!cmd_go_bootstrap,!msan,!no_openssl
-+//go:build linux && cgo && !android && !gocrypt && !cmd_go_bootstrap && !msan && !no_openssl && !static
-+// +build linux,cgo,!android,!gocrypt,!cmd_go_bootstrap,!msan,!no_openssl,!static
+-//go:build linux && cgo && !android && !gocrypt && !cmd_go_bootstrap && !msan && !no_openssl && !purego
+-// +build linux,cgo,!android,!gocrypt,!cmd_go_bootstrap,!msan,!no_openssl,!purego
++//go:build linux && cgo && !android && !gocrypt && !cmd_go_bootstrap && !msan && !no_openssl && !purego && !static
++// +build linux,cgo,!android,!gocrypt,!cmd_go_bootstrap,!msan,!no_openssl,!purego,!static
  
  // Package openssl provides access to OpenSSLCrypto implementation functions.
  // Check the variable Enabled to find out whether OpenSSLCrypto is available.
 diff --git a/src/crypto/internal/boring/goboringcrypto.h b/src/crypto/internal/boring/goboringcrypto.h
-index 2b11049728..dec1cb2851 100644
+index 2b11049..dec1cb2 100644
 --- a/src/crypto/internal/boring/goboringcrypto.h
 +++ b/src/crypto/internal/boring/goboringcrypto.h
 @@ -1,4 +1,5 @@
@@ -52,7 +39,7 @@ index 2b11049728..dec1cb2851 100644
  // license that can be found in the LICENSE file.
  
 diff --git a/src/crypto/internal/boring/syso/syso.go b/src/crypto/internal/boring/syso/syso.go
-index b3387545e6..db5ea1e3d9 100644
+index b338754..db5ea1e 100644
 --- a/src/crypto/internal/boring/syso/syso.go
 +++ b/src/crypto/internal/boring/syso/syso.go
 @@ -2,7 +2,7 @@
@@ -65,7 +52,7 @@ index b3387545e6..db5ea1e3d9 100644
  // This package only exists with GOEXPERIMENT=boringcrypto.
  // It provides the actual syso file.
 diff --git a/src/vendor/github.com/golang-fips/openssl/v2/goopenssl.h b/src/vendor/github.com/golang-fips/openssl/v2/goopenssl.h
-index e488bf2014..e776aa46a3 100644
+index e488bf2..e776aa4 100644
 --- a/src/vendor/github.com/golang-fips/openssl/v2/goopenssl.h
 +++ b/src/vendor/github.com/golang-fips/openssl/v2/goopenssl.h
 @@ -1,4 +1,5 @@
@@ -74,6 +61,3 @@ index e488bf2014..e776aa46a3 100644
  
  #include <stdlib.h> // size_t
  
--- 
-2.44.0
-

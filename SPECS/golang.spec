@@ -91,8 +91,8 @@
 %global gohostarch  s390x
 %endif
 
-%global go_api 1.22
-%global version 1.22.9
+%global go_api 1.23
+%global version 1.23.6
 %global pkg_release 1
 
 Name:           golang
@@ -258,6 +258,8 @@ popd
 %autopatch -p1
 
 sed -i '1s/$/ (%{?rhel:Red Hat} %{version}-%{release})/' VERSION
+# Delete the boring binary blob.  We use the system OpenSSL instead.
+rm -rf src/crypto/internal/boring/syso
 
 cp %{SOURCE2} ./src/runtime/
 
@@ -521,6 +523,19 @@ cd ..
 %endif
 
 %changelog
+* Thu Mar 13 2025 David Benoit <dbenoit@redhat.com> - 1.23.6-1
+- Update to Go 1.23.6
+- Resolves: RHEL-83824
+
+* Tue Jan 21 2025 Archana <aravinda@redhat.com> - 1.22.11-1
+- Rebase to Go1.22.11 to pick up fixes for CVE 2024-45341 and 2024-45336
+- Fix test failures with expired certificates
+- Resolves: RHEL-73752
+
+* Fri Dec 13 2024 Alejandro Sáez <asm@redhat.com> - 1.22.9-2
+- Remove bundled boringcrypto blob
+- Resolves: RHEL-54338
+
 * Thu Nov 14 2024 David Benoit <dbenoit@redhat.com> - 1.22.9-1
 - Update to Go 1.22.9
 - Resolves: RHEL-67668
