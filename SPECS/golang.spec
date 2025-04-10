@@ -92,8 +92,8 @@
 %global gohostarch  s390x
 %endif
 
-%global go_api 1.22
-%global go_version 1.22.9
+%global go_api 1.23
+%global go_version 1.23.6
 %global version %{go_version}
 %global pkg_release 1
 
@@ -101,7 +101,7 @@
 %global llvm_compiler_rt_version 18.1.8
 
 Name:           golang
-Version:        %{version}
+Version:	%{version}
 Release:        2%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
@@ -154,6 +154,7 @@ Patch1939923:   skip_test_rhbz1939923.patch
 
 Patch4:		modify_go.env.patch
 Patch6:		skip_TestCrashDumpsAllThreads.patch
+Patch7:		runtime-usleep-s390x.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -583,22 +584,23 @@ cd ..
 %endif
 
 %changelog
-* Thu Nov 14 2024 David Benoit <dbenoit@redhat.com> - 1.22.9-2
-- Fix sources
-- Related: RHEL-67672
+* Thu Feb 27 2025 David Benoit <dbenoit@redhat.com> - 1.23.6-2
+- Fix runtime usleep issue on s390x (runtime-usleep-s390x.patch)
+- Resolves: RHEL-81242
 
-* Thu Nov 14 2024 David Benoit <dbenoit@redhat.com> - 1.22.9-1
-- Update to Go 1.22.9
-- Resolves: RHEL-67672
+* Thu Feb 20 2025 David Benoit <dbenoit@redhat.com> - 1.23.6-1
+- Update to Go 1.23.6 (fips-1)
+- Resolves: RHEL-80344
 
-* Thu Oct 03 2024 Archana <aravinda@redhat.com> - 1.22.7-2
-- Rebuilt to use right build target
-- Related: RHEL-57867
+* Thu Jan 09 2025 David Benoit <dbenoit@redhat.com> - 1.23.4-1
+- Update to Go 1.23.4 (fips-1)
+- Resolves: RHEL-61048
+- Resolves: RHEL-61223
 
-* Tue Sep 24 2024 David Benoit <dbenoit@redhat.com> - 1.22.7-1
-- Update to Go 1.22.7
-- Remove fix-standard-crypto-panic.patch (upstreamed)
-- Resolves: RHEL-57867
+* Wed Oct 23 2024 Archana <aravinda@redhat.com> - 1.23.2-1
+- Rebase to Go1.23.2
+- Remove fix standard crypto panic patch as the source already has changes
+- Resolves: RHEL-62392
 
 * Wed Aug 14 2024 David Benoit <dbenoit@redhat.com> - 1.22.5-2
 - Rebuild race detector archives from LLVM sources
