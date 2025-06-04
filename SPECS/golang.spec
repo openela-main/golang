@@ -93,7 +93,7 @@
 %endif
 
 %global go_api 1.23
-%global go_version 1.23.6
+%global go_version 1.23.9
 %global version %{go_version}
 %global pkg_release 1
 
@@ -102,7 +102,7 @@
 
 Name:           golang
 Version:	%{version}
-Release:        2%{?dist}
+Release:        1%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -154,7 +154,6 @@ Patch1939923:   skip_test_rhbz1939923.patch
 
 Patch4:		modify_go.env.patch
 Patch6:		skip_TestCrashDumpsAllThreads.patch
-Patch7:		runtime-usleep-s390x.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -584,6 +583,11 @@ cd ..
 %endif
 
 %changelog
+* Fri May 30 2025 Alejandro Sáez <asm@redhat.com> - 1.23.9-1
+- Update to Go 1.23.9
+- Remove runtime-usleep-s390x.patch, already merged
+- Resolves: RHEL-93212
+
 * Thu Feb 27 2025 David Benoit <dbenoit@redhat.com> - 1.23.6-2
 - Fix runtime usleep issue on s390x (runtime-usleep-s390x.patch)
 - Resolves: RHEL-81242
