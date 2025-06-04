@@ -92,7 +92,7 @@
 %endif
 
 %global go_api 1.23
-%global version 1.23.6
+%global version 1.23.9
 %global pkg_release 1
 
 Name:           golang
@@ -523,6 +523,10 @@ cd ..
 %endif
 
 %changelog
+* Mon Jun 02 2025 Alejandro Sáez <asm@redhat.com> - 1.23.9-1
+- Update to Go 1.23.9
+- Resolves: RHEL-94636
+
 * Thu Mar 13 2025 David Benoit <dbenoit@redhat.com> - 1.23.6-1
 - Update to Go 1.23.6
 - Resolves: RHEL-83824
