@@ -93,7 +93,7 @@
 %endif
 
 %global go_api 1.24
-%global go_version 1.24.4
+%global go_version 1.24.6
 %global version %{go_version}
 %global pkg_release 1
 
@@ -585,6 +585,10 @@ cd ..
 %endif
 
 %changelog
+* Wed Aug 13 2025 David Benoit <dbenoit@redhat.com> - 1.24.6-1
+- Update to Go 1.24.6 (fips-1)
+- Resolves: RHEL-106464
+
 * Fri Jun 13 2025 David Benoit <dbenoit@redhat.com> - 1.24.4-1
 - Update to Go 1.24.4 (fips-1)
 - Resolves: RHEL-101074
