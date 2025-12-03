@@ -69,6 +69,7 @@
 %global shared 0
 %endif
 
+# Pre build std lib with -race enabled
 # Disabled due to 1.20 new cache usage, see 1.20 upstream release notes
 %global race 0
 
@@ -91,14 +92,17 @@
 %global gohostarch  s390x
 %endif
 
-%global go_api 1.24
-%global version 1.24.6
+%global go_api 1.25
+%global go_version 1.25.3
+%global version %{go_version}
 %global pkg_release 1
+
+# LLVM compiler-rt version for race detector
+%global llvm_compiler_rt_version 18.1.8
 
 Name:           golang
 Version:        %{version}
-Release:        1%{?dist}
-
+Release:        2%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -110,9 +114,10 @@ Source0:        https://github.com/golang/go/archive/refs/tags/go%{version}.tar.
 # located at https://github.com/golang-fips/openssl-fips,
 # And pre-genetated patches to set up the module for a given
 # Go release are located at https://github.com/golang-fips/go.
-Source1:       https://github.com/golang-fips/go/archive/refs/tags/go%{version}-%{pkg_release}-openssl-fips.tar.gz
+Source1:	https://github.com/golang-fips/go/archive/refs/tags/go%{version}-%{pkg_release}-openssl-fips.tar.gz
 # make possible to override default traceback level at build time by setting build tag rpm_crashtraceback
 Source2:        fedora.go
+Source3: 	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{llvm_compiler_rt_version}/compiler-rt-%{llvm_compiler_rt_version}.src.tar.xz
 
 # The compiler is written in Go. Needs go(1.4+) compiler for build.
 # Actual Go based bootstrap compiler provided by above source.
@@ -131,9 +136,14 @@ BuildRequires:  openssl-devel
 # for tests
 BuildRequires:  pcre-devel, glibc-static, perl
 
+# Necessary for building llvm address sanitizer for Go race detector
+BuildRequires: libstdc++-devel
+BuildRequires: clang
+
 Provides:       go = %{version}-%{release}
 Requires:       %{name}-bin = %{version}-%{release}
 Requires:       %{name}-src = %{version}-%{release}
+Requires:       %{name}-race = %{version}-%{release}
 Requires:       openssl-devel
 Requires:       diffutils
 
@@ -142,19 +152,16 @@ Patch221:       fix_TestScript_list_std.patch
 
 Patch1939923:   skip_test_rhbz1939923.patch
 
-Patch2:		disable_static_tests_part1.patch
-Patch3:		disable_static_tests_part2.patch
-Patch5:		modify_go.env.patch
-Patch7:		skip_TestCrashDumpsAllThreads.patch
+Patch4:		modify_go.env.patch
+Patch6:		skip_TestCrashDumpsAllThreads.patch
+# Related: https://sourceware.org/bugzilla/show_bug.cgi?id=33204
+Patch7:     revert_dwarf5.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
 
 # RPM can't handle symlink -> dir with subpackages, so merge back
 Obsoletes:      %{name}-data < 1.1.1-4
-
-# We don't build golang-race anymore, rhbz#2230599
-Obsoletes:      golang-race < 1.20.0
 
 # These are the only RHEL/Fedora architectures that we compile this package for
 ExclusiveArch:  %{golang_arches}
@@ -226,15 +233,23 @@ Summary:        Golang shared object libraries
 %{summary}.
 %endif
 
-%if %{race}
-%package        race
-Summary:        Golang std library with -race enabled
+%package -n go-toolset
+Summary:        Package that installs go-toolset
+Requires:       %{name} = %{version}-%{release}
+%ifarch x86_64 aarch64 ppc64le
+Requires:       delve
+%endif
 
+%description -n go-toolset
+This is the main package for go-toolset.
+
+
+%package race
+Summary:	Race detetector library object files.
 Requires:       %{name} = %{version}-%{release}
 
 %description    race
-%{summary}
-%endif
+Binary library objects for Go's race detector.
 
 %prep
 %setup -q -n go-go%{version}
@@ -246,7 +261,7 @@ patch_dir="../go-go%{version}-%{pkg_release}-openssl-fips/patches"
 # Add --no-backup-if-mismatch option to avoid creating .orig temp files
 for p in "$patch_dir"/*.patch; do
 	echo "Applying $p"
-	patch -p1 --no-backup-if-mismatch < $p
+	patch --no-backup-if-mismatch -p1 < $p
 done
 
 # Configure crypto tests
@@ -258,10 +273,13 @@ popd
 %autopatch -p1
 
 sed -i '1s/$/ (%{?rhel:Red Hat} %{version}-%{release})/' VERSION
-# Delete the boring binary blob.  We use the system OpenSSL instead.
-rm -rf src/crypto/internal/boring/syso
 
 cp %{SOURCE2} ./src/runtime/
+# Delete the bundled race detector objects.
+find ./src/runtime/race/ -name "race_*.syso" -exec rm {} \;
+
+# Delete the boring binary blob.  We use the system OpenSSL instead.
+rm -rf src/crypto/internal/boring/syso
 
 %build
 set -xe
@@ -269,6 +287,40 @@ set -xe
 uname -a
 cat /proc/cpuinfo
 cat /proc/meminfo
+
+# Build race detector .syso's from llvm sources
+# The race detector requests a -fno-exceptions build.
+%global tsan_buildflags %(rpm -D 'toolchain clang' -E '%{optflags}' | sed 's/-fexceptions//')
+%global tsan_optflag -O1
+mkdir ../llvm
+
+tar -xf %{SOURCE3} -C ../llvm
+tsan_go_dir="../llvm/compiler-rt-%{llvm_compiler_rt_version}.src/lib/tsan/go"
+
+# The script uses uname -a and grep to set the GOARCH.  This
+# is unreliable and can get the wrong architecture in
+# circumstances like cross-architecture emulation.  We fix it
+# by just reading GOARCH directly from Go.
+export GOARCH=$(go env GOARCH)
+
+%ifarch x86_64
+pushd "${tsan_go_dir}"
+  CFLAGS="%{tsan_buildflags} %{tsan_optflag}" CC=clang GOAMD64=v3 ./buildgo.sh
+popd
+cp "${tsan_go_dir}"/race_linux_amd64.syso ./src/runtime/race/internal/amd64v3/race_linux.syso
+
+pushd "${tsan_go_dir}"
+  CFLAGS="%{tsan_buildflags} %{tsan_optflag}" CC=clang GOAMD64=v1 ./buildgo.sh
+popd
+cp "${tsan_go_dir}"/race_linux_amd64.syso ./src/runtime/race/internal/amd64v1/race_linux.syso
+
+%else
+pushd "${tsan_go_dir}"
+  CFLAGS="%{tsan_buildflags} %{tsan_optflag}" CC=clang ./buildgo.sh
+popd
+cp "${tsan_go_dir}"/race_linux_%{gohostarch}.syso ./src/runtime/race/race_linux_%{gohostarch}.syso
+%endif
+
 
 # bootstrap compiler GOROOT
 %if !%{golang_bootstrap}
@@ -373,7 +425,7 @@ pushd $RPM_BUILD_ROOT%{goroot}
         echo "%%{goroot}/$file" >> $shared_list
         echo "%%{golibdir}/$(basename $file)" >> $shared_list
     done
-    
+
     find pkg/*_dynlink/ -type d -printf '%%%dir %{goroot}/%p\n' >> $shared_list
     find pkg/*_dynlink/ ! -type d -printf '%{goroot}/%p\n' >> $shared_list
 %endif
@@ -447,9 +499,6 @@ export GO_TEST_RUN=""
 
 %if %{fail_on_tests}
 
-# TestEd25519Vectors needs network connectivity but it should be cover by
-# this test https://pkgs.devel.redhat.com/cgit/tests/golang/tree/Regression/internal-testsuite/runtest.sh#n127
-
 ./run.bash --no-rebuild -v -v -v -k $GO_TEST_RUN
 
 # Run tests with FIPS enabled.
@@ -504,8 +553,13 @@ cd ..
 # prelink blacklist
 %{_sysconfdir}/prelink.conf.d
 
-
 %files -f go-src.list src
+%ifarch x86_64
+%exclude %{goroot}/src/runtime/race/internal/amd64v1/race_linux.syso
+%exclude %{goroot}/src/runtime/race/internal/amd64v3/race_linux.syso
+%else
+%exclude %{goroot}/src/runtime/race/race_linux_%{gohostarch}.syso
+%endif
 
 %files -f go-docs.list docs
 
@@ -522,7 +576,23 @@ cd ..
 %files -f go-shared.list shared
 %endif
 
+%files -n go-toolset
+
+%files race
+%ifarch x86_64
+%{goroot}/src/runtime/race/internal/amd64v1/race_linux.syso
+%{goroot}/src/runtime/race/internal/amd64v3/race_linux.syso
+%else
+%{goroot}/src/runtime/race/race_linux_%{gohostarch}.syso
+%endif
+
 %changelog
+* Wed Oct 29 2025 David Benoit <dbenoit@redhat.com> - 1.25.3-1
+- Update to Go 1.25.3 (sync from CentOS Stream 9)
+- Build go-toolset as a subpackage
+- Preserve GOAMD64=v1 for RHEL 8
+- Resolves: RHEL-121223
+
 * Wed Aug 13 2025 David Benoit <dbenoit@redhat.com> - 1.24.6-1
 - Update to Go 1.24.6 (fips-1)
 - Resolves: RHEL-106455
