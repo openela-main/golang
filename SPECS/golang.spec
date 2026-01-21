@@ -93,7 +93,7 @@
 %endif
 
 %global go_api 1.25
-%global go_version 1.25.3
+%global go_version 1.25.5
 %global version %{go_version}
 %global pkg_release 1
 
@@ -102,7 +102,7 @@
 
 Name:           golang
 Version:        %{version}
-Release:        2%{?dist}
+Release:        1%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -587,6 +587,10 @@ cd ..
 %endif
 
 %changelog
+* Mon Jan 19 2026 dbenoit <dbenoit@redhat.com> - 1.25.5-1
+- Update to Go 1.25.5 (fips-1)
+- Resolves: RHEL-139365
+
 * Wed Oct 29 2025 David Benoit <dbenoit@redhat.com> - 1.25.3-1
 - Update to Go 1.25.3 (sync from CentOS Stream 9)
 - Build go-toolset as a subpackage
