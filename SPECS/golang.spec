@@ -93,7 +93,7 @@
 %endif
 
 %global go_api 1.25
-%global go_version 1.25.3
+%global go_version 1.25.5
 %global version %{go_version}
 %global pkg_release 1
 
@@ -102,7 +102,7 @@
 
 Name:           golang
 Version:        %{version}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -400,20 +400,37 @@ shared_list=$cwd/go-shared.list
 misc_list=$cwd/go-misc.list
 docs_list=$cwd/go-docs.list
 tests_list=$cwd/go-tests.list
+
+# Ensure they don't exist
 rm -f $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list
 touch $src_list $pkg_list $docs_list $misc_list $tests_list $shared_list
+
+##################
+# Register files #
+##################
 pushd $RPM_BUILD_ROOT%{goroot}
-    find src/ -type d -a \( ! -name testdata -a ! -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $src_list
-    find src/ ! -type d -a \( ! -ipath '*/testdata/*' -a ! -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $src_list
 
-    find bin/ pkg/ -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%%%dir %{goroot}/%p\n' >> $pkg_list
-    find bin/ pkg/ ! -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%{goroot}/%p\n' >> $pkg_list
+# Src
+find src/ -type d -a \( ! -name testdata -a ! -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $src_list
+find src/ ! -type d -a \( ! -ipath '*/testdata/*' -a ! -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $src_list
 
-    find doc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $docs_list
-    find doc/ ! -type d -printf '%{goroot}/%p\n' >> $docs_list
+# Bin
+find bin/ pkg/ -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%%%dir %{goroot}/%p\n' >> $pkg_list
+find bin/ pkg/ ! -type d -a ! -path '*_dynlink/*' -a ! -path '*_race/*' -printf '%{goroot}/%p\n' >> $pkg_list
 
-    find misc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $misc_list
-    find misc/ ! -type d -printf '%{goroot}/%p\n' >> $misc_list
+# Docs
+find doc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $docs_list
+find doc/ ! -type d -printf '%{goroot}/%p\n' >> $docs_list
+
+# Misc
+find misc/ -type d -printf '%%%dir %{goroot}/%p\n' >> $misc_list
+find misc/ ! -type d -printf '%{goroot}/%p\n' >> $misc_list
+
+# Test
+find test/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
+find test/ ! -type d -printf '%{goroot}/%p\n' >> $tests_list
+find src/ -type d -a \( -name testdata -o -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $tests_list
+find src/ ! -type d -a \( -ipath '*/testdata/*' -o -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $tests_list
 
 %if %{shared}
     mkdir -p %{buildroot}/%{_libdir}/
@@ -431,14 +448,6 @@ pushd $RPM_BUILD_ROOT%{goroot}
     find pkg/*_dynlink/ -type d -printf '%%%dir %{goroot}/%p\n' >> $shared_list
     find pkg/*_dynlink/ ! -type d -printf '%{goroot}/%p\n' >> $shared_list
 %endif
-
-    find test/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
-    find test/ ! -type d -printf '%{goroot}/%p\n' >> $tests_list
-    find src/ -type d -a \( -name testdata -o -ipath '*/testdata/*' \) -printf '%%%dir %{goroot}/%p\n' >> $tests_list
-    find src/ ! -type d -a \( -ipath '*/testdata/*' -o -name '*_test*.go' \) -printf '%{goroot}/%p\n' >> $tests_list
-    # this is only the zoneinfo.zip
-    find lib/ -type d -printf '%%%dir %{goroot}/%p\n' >> $tests_list
-    find lib/ ! -type d -printf '%{goroot}/%p\n' >> $tests_list
 popd
 
 # remove the doc Makefile
@@ -590,18 +599,29 @@ cd ..
 %endif
 
 %changelog
+* Tue Jan 20 2026 dbenoit <dbenoit@redhat.com> - 1.25.5-2
+- Rebase to rhel-9-main
+- Related: RHEL-139366
+
+* Mon Jan 19 2026 dbenoit <dbenoit@redhat.com> - 1.25.5-1
+- Update to Go 1.25.5 (fips-1)
+- Resolves: RHEL-139366
+
+* Fri Dec 19 2025 Alejandro Sáez <asm@redhat.com> - 1.25.3-2
+- Cleanup lib/ ownership
+
 * Wed Oct 29 2025 Alejandro Sáez <asm@redhat.com> - 1.25.3-1
 - Update to Go 1.25.3
-- Resolves: RHEL-121220
+- Related: RHEL-139366
 
 * Mon Sep 29 2025 Archana Ravindar <aravinda@redhat.com> - 1.25.1-1
 - Update to Go 1.25.1
-- Resolves: RHEL-116850
+- Related: RHEL-139366
 
 * Fri Sep 12 2025 Alejandro Sáez <asm@redhat.com> - 1.25.0-2
 - Revert DWARF5 defaults
 - Add elf5 to rpminspect.yaml
-- Related: RHEL-109557
+- Related: RHEL-139366
 
 * Wed Aug 20 2025 Alejandro Sáez <asm@redhat.com> - 1.25.0-1
 - Update to Go 1.25.0
