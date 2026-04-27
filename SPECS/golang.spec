@@ -56,7 +56,7 @@
 %endif
 
 # Controls what ever we fail on failed tests
-%ifarch x86_64 %{arm} ppc64le s390x
+%ifarch x86_64 %{arm} ppc64le s390x aarch64
 %global fail_on_tests 1
 %else
 %global fail_on_tests 0
@@ -93,9 +93,9 @@
 %endif
 
 %global go_api 1.25
-%global go_version 1.25.8
+%global go_version 1.25.9
 %global version %{go_version}
-%global pkg_release 1
+%global pkg_release 2
 
 # LLVM compiler-rt version for race detector
 %global llvm_compiler_rt_version 18.1.8
@@ -587,6 +587,10 @@ cd ..
 %endif
 
 %changelog
+* Wed Apr 22 2026 dbenoit <dbenoit@redhat.com> - 1.25.9-1
+- Update to Go 1.25.9 (fips-2)
+- Resolves: RHEL-169932
+
 * Thu Apr 02 2026 dbenoit <dbenoit@redhat.com> - 1.25.7-2
 - Update to Go 1.25.8 (fips-1)
 - Resolves: RHEL-156551
