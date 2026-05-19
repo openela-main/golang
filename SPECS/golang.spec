@@ -92,8 +92,8 @@
 %global gohostarch  s390x
 %endif
 
-%global go_api 1.25
-%global go_version 1.25.9
+%global go_api 1.26
+%global go_version 1.26.2
 %global version %{go_version}
 %global pkg_release 2
 
@@ -519,9 +519,10 @@ export GOLANG_FIPS=1
 export OPENSSL_FORCE_FIPS_MODE=1
 pushd crypto
   # Run all crypto tests but skip TLS, we will run FIPS specific TLS tests later
-  go test -timeout 50m $(go list ./... | grep -v tls) -v -skip="TestEd25519Vectors|TestACVP"
+  FIPS_SKIP="TestEd25519Vectors|TestACVP|TestGCMNoncesFIPSV126|TestGCMNoncesFIPSV1|TestWithoutEnforcement|TestCASTPasses|TestCASTFailures|TestIntegrityCheck|TestBetterTLS"
+  go test -timeout 50m $(go list ./... | grep -v tls) -v -skip="$FIPS_SKIP"
   # Check that signature functions have parity between boring and notboring
-  CGO_ENABLED=0 go test -timeout 50m $(go list ./... | grep -v tls) -v -skip="TestEd25519Vectors|TestACVP"
+  CGO_ENABLED=0 go test -timeout 50m $(go list ./... | grep -v tls) -v -skip="$FIPS_SKIP"
 popd
 # Run all FIPS specific TLS tests
 pushd crypto/tls
@@ -600,41 +601,37 @@ cd ..
 %endif
 
 %changelog
-* Wed Apr 22 2026 dbenoit <dbenoit@redhat.com> - 1.25.9-1
-- Update to Go 1.25.9 (fips-2)
-- Resolves: RHEL-169931
+* Wed Apr 22 2026 dbenoit <dbenoit@redhat.com> - 1.26.2-1
+- Update to Go 1.26.2 (fips-2)
+- Resolves: RHEL-169929
 
-* Tue Mar 24 2026 dbenoit <dbenoit@redhat.com> - 1.25.8-2
-- Update to Go 1.25.8 (fips-1)
-- Resolves: RHEL-157451
+* Fri Mar 27 2026 Alejandro Sáez <asm@redhat.com> - 1.26.1-1
+- Update to Go 1.26.1
+- Resolves: RHEL-153434
 
 * Thu Feb 12 2026 dbenoit <dbenoit@redhat.com> - 1.25.7-1
 - Update to Go 1.25.7 (fips-1)
-- Resolves: RHEL-146476
-
-* Tue Jan 20 2026 dbenoit <dbenoit@redhat.com> - 1.25.5-2
-- Rebase to rhel-9-main
-- Related: RHEL-139366
+- Resolves: RHEL-146452
 
 * Mon Jan 19 2026 dbenoit <dbenoit@redhat.com> - 1.25.5-1
 - Update to Go 1.25.5 (fips-1)
-- Resolves: RHEL-139366
+- Resolves: RHEL-139364
 
 * Fri Dec 19 2025 Alejandro Sáez <asm@redhat.com> - 1.25.3-2
 - Cleanup lib/ ownership
 
 * Wed Oct 29 2025 Alejandro Sáez <asm@redhat.com> - 1.25.3-1
 - Update to Go 1.25.3
-- Related: RHEL-139366
+- Resolves: RHEL-121220
 
 * Mon Sep 29 2025 Archana Ravindar <aravinda@redhat.com> - 1.25.1-1
 - Update to Go 1.25.1
-- Related: RHEL-139366
+- Resolves: RHEL-116850
 
 * Fri Sep 12 2025 Alejandro Sáez <asm@redhat.com> - 1.25.0-2
 - Revert DWARF5 defaults
 - Add elf5 to rpminspect.yaml
-- Related: RHEL-139366
+- Related: RHEL-109557
 
 * Wed Aug 20 2025 Alejandro Sáez <asm@redhat.com> - 1.25.0-1
 - Update to Go 1.25.0

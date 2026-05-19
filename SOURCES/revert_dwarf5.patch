@@ -1,17 +1,8 @@
-From e90ae9076a108b83c645814f75a574c14a5a4b98 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?Alejandro=20S=C3=A1ez?= <asm@redhat.com>
-Date: Wed, 27 Aug 2025 16:18:09 +0200
-Subject: [PATCH] Revert DWARF5 as default, use DWARF4
-
----
- src/internal/buildcfg/exp.go | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
-
 diff --git a/src/internal/buildcfg/exp.go b/src/internal/buildcfg/exp.go
-index 689ca8ce58..b2ea97481b 100644
+index aa41986..f1a8ba8 100644
 --- a/src/internal/buildcfg/exp.go
 +++ b/src/internal/buildcfg/exp.go
-@@ -67,24 +67,13 @@ func ParseGOEXPERIMENT(goos, goarch, goexp string) (*ExperimentFlags, error) {
+@@ -69,21 +69,11 @@ func ParseGOEXPERIMENT(goos, goarch, goexp string) (*ExperimentFlags, error) {
  		regabiSupported = true
  	}
  
@@ -25,18 +16,12 @@ index 689ca8ce58..b2ea97481b 100644
 -	// support the necessary section subtypes for DWARF-specific
 -	// things like .debug_addr (needed for DWARF 5).
 -	dwarf5Supported := (goos != "darwin" && goos != "ios" && goos != "aix")
--
- 	baseline := goexperiment.Flags{
- 		RegabiWrappers:  regabiSupported,
- 		RegabiArgs:      regabiSupported,
- 		AliasTypeParams: true,
- 		SwissMap:        true,
- 		SyncHashTrieMap: true,
--		Dwarf5:          dwarf5Supported,
-+		Dwarf5:          false,
- 	}
  
- 	// Start with the statically enabled set of experiments.
--- 
-2.51.0
-
+ 	baseline := goexperiment.Flags{
+ 		RegabiWrappers:       regabiSupported,
+ 		RegabiArgs:           regabiSupported,
+-		Dwarf5:               dwarf5Supported,
++		Dwarf5:               false,
+ 		RandomizedHeapBase64: true,
+ 		GreenTeaGC:           true,
+ 	}
