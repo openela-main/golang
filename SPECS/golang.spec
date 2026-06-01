@@ -93,9 +93,9 @@
 %endif
 
 %global go_api 1.25
-%global go_version 1.25.9
+%global go_version 1.25.10
 %global version %{go_version}
-%global pkg_release 2
+%global pkg_release 1
 
 # LLVM compiler-rt version for race detector
 %global llvm_compiler_rt_version 18.1.8
@@ -587,6 +587,10 @@ cd ..
 %endif
 
 %changelog
+* Tue May 12 2026 dbenoit <dbenoit@redhat.com> - 1.25.10-1
+- Update to Go 1.25.10 (fips-1)
+- Resolves: RHEL-175610
+
 * Wed Apr 22 2026 dbenoit <dbenoit@redhat.com> - 1.25.9-1
 - Update to Go 1.25.9 (fips-2)
 - Resolves: RHEL-169932
