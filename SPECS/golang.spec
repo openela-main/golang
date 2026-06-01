@@ -92,10 +92,24 @@
 %global gohostarch  s390x
 %endif
 
+# Set the RHEL architecture baseline.
+%if 0%{?rhel} < 9
+%global goamd64 v1
+%global goppc64 power8
+%else
+%if 0%{?rhel} < 10
+%global goamd64 v2
+%global goppc64 power8
+%else
+%global goamd64 v3
+%global goppc64 power9
+%endif
+%endif
+
 %global go_api 1.26
-%global go_version 1.26.2
+%global go_version 1.26.3
 %global version %{go_version}
-%global pkg_release 2
+%global pkg_release 1
 
 # LLVM compiler-rt version for race detector
 %global llvm_compiler_rt_version 18.1.8
@@ -275,6 +289,13 @@ popd
 
 sed -i '1s/$/ (%{?rhel:Red Hat} %{version}-%{release})/' VERSION
 
+# Historically the ISA baselines have been set in modify-go.env.patch.
+# This will prevent us sharing a specfile across major RHEL versions.
+# As such, we must override the baselines set in the patch file.
+sed -iE "s/^.*baseline for RHEL.*$//" go.env
+sed -i "s/GOAMD64=.*/GOAMD64=%{goamd64}/" go.env
+sed -i "s/GOPPC64=.*/GOPPC64=%{goppc64}/" go.env
+
 cp %{SOURCE2} ./src/runtime/
 # Delete the bundled race detector objects.
 find ./src/runtime/race/ -name "race_*.syso" -exec rm {} \;
@@ -335,7 +356,7 @@ export GOROOT_FINAL=%{goroot}
 
 export GOHOSTOS=linux
 export GOHOSTARCH=%{gohostarch}
-export GOAMD64=v2
+export GOAMD64=%{goamd64}
 
 pushd src
 # use our gcc options for this build, but store gcc as default for compiler
@@ -345,7 +366,7 @@ export CC="gcc"
 export CC_FOR_TARGET="gcc"
 export GOOS=linux
 export GOARCH=%{gohostarch}
-export GOAMD64=v2
+export GOAMD64=%{goamd64}
 
 DEFAULT_GO_LD_FLAGS=""
 %if !%{external_linker}
@@ -492,7 +513,7 @@ go env
 export CC="gcc"
 export CFLAGS="$RPM_OPT_FLAGS"
 export LDFLAGS="$RPM_LD_FLAGS"
-export GOAMD64=v2
+export GOAMD64=%{goamd64}
 %if !%{external_linker}
 export GO_LDFLAGS="-linkmode internal"
 %else
@@ -601,6 +622,10 @@ cd ..
 %endif
 
 %changelog
+* Tue May 12 2026 dbenoit <dbenoit@redhat.com> - 1.26.3-1
+- Update to Go 1.26.3 (fips-1)
+- Resolves: RHEL-175607
+
 * Wed Apr 22 2026 dbenoit <dbenoit@redhat.com> - 1.26.2-1
 - Update to Go 1.26.2 (fips-2)
 - Resolves: RHEL-169929
