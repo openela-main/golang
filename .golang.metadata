@@ -1,3 +1,3 @@
 e054e99a9c9240720616e927cb52363abbc8b4f1ef0286bad3df79ec8fdf892f SOURCES/compiler-rt-18.1.8.src.tar.xz
-fec0ca5faa2e7f02e9ac9afe01b836611246f81c2d62833e09c2159c5523703a SOURCES/go1.26.3-1-openssl-fips.tar.gz
-e37ac8221cb85fa62324e844be5419ece5f1f099c1f0b5b4211d15d104ad1367 SOURCES/go1.26.3.tar.gz
+0bf47a72c65b2723aeb7eaf1711e59a90dfc420de07ad7c79142261830dc020f SOURCES/go1.26.4-1-openssl-fips.tar.gz
+b7b64fe8b69d9c30db1ef0cd36ab783f6f0adce857e45bed402a3a7e1576045c SOURCES/go1.26.4.tar.gz
