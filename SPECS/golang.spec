@@ -107,7 +107,7 @@
 %endif
 
 %global go_api 1.26
-%global go_version 1.26.4
+%global go_version 1.26.5
 %global version %{go_version}
 %global pkg_release 1
 
@@ -622,21 +622,9 @@ cd ..
 %endif
 
 %changelog
-* Wed Jun 10 2026 dbenoit <dbenoit@redhat.com> - 1.26.4-1
-- Update to Go 1.26.4 (fips-1)
-- Resolves: RHEL-183349
-
-* Tue May 12 2026 dbenoit <dbenoit@redhat.com> - 1.26.3-1
-- Update to Go 1.26.3 (fips-1)
-- Resolves: RHEL-175607
-
-* Wed Apr 22 2026 dbenoit <dbenoit@redhat.com> - 1.26.2-1
-- Update to Go 1.26.2 (fips-2)
-- Resolves: RHEL-169929
-
-* Fri Mar 27 2026 Alejandro Sáez <asm@redhat.com> - 1.26.1-1
-- Update to Go 1.26.1
-- Resolves: RHEL-153434
+* Wed Jul 08 2026 dbenoit <dbenoit@redhat.com> - 1.26.5-1
+- Update to Go 1.26.5 (fips-1)
+- Resolves: RHEL-193476
 
 * Thu Feb 12 2026 dbenoit <dbenoit@redhat.com> - 1.25.7-1
 - Update to Go 1.25.7 (fips-1)
