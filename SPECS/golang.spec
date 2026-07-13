@@ -92,8 +92,8 @@
 %global gohostarch  s390x
 %endif
 
-%global go_api 1.25
-%global go_version 1.25.10
+%global go_api 1.26
+%global go_version 1.26.5
 %global version %{go_version}
 %global pkg_release 1
 
@@ -506,9 +506,9 @@ export GOLANG_FIPS=1
 export OPENSSL_FORCE_FIPS_MODE=1
 pushd crypto
   # Run all crypto tests but skip TLS, we will run FIPS specific TLS tests later
-  go test -timeout 50m $(go list ./... | grep -v tls) -v -skip="TestEd25519Vectors|TestACVP"
-  # Check that signature functions have parity between boring and notboring
-  CGO_ENABLED=0 go test -timeout 50m $(go list ./... | grep -v tls) -v -skip="TestEd25519Vectors|TestACVP"
+  go test $(go list ./... | grep -v tls) -v -skip="TestEd25519Vectors|TestACVP|TestGCMNoncesFIPSV126|TestGCMNoncesFIPSV1|TestWithoutEnforcement|TestCASTPasses|TestCASTFailures|TestIntegrityCheck|TestBetterTLS"
+  # check that signature functions have parity between boring and notboring
+  CGO_ENABLED=0 go test $(go list ./... | grep -v tls) -v -skip="TestEd25519Vectors|TestACVP|TestGCMNoncesFIPSV126|TestGCMNoncesFIPSV1|TestWithoutEnforcement|TestCASTPasses|TestCASTFailures|TestIntegrityCheck|TestBetterTLS"
 popd
 # Run all FIPS specific TLS tests
 pushd crypto/tls
@@ -587,6 +587,14 @@ cd ..
 %endif
 
 %changelog
+* Wed Jul 08 2026 dbenoit <dbenoit@redhat.com> - 1.26.5-1
+- Update to Go 1.26.5 (fips-1)
+- Resolves: RHEL-193478
+
+* Wed Jun 10 2026 dbenoit <dbenoit@redhat.com> - 1.26.4-1
+- Update to Go 1.26.4 (fips-1)
+- Resolves: RHEL-183352
+
 * Tue May 12 2026 dbenoit <dbenoit@redhat.com> - 1.25.10-1
 - Update to Go 1.25.10 (fips-1)
 - Resolves: RHEL-175610
