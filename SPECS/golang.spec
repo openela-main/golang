@@ -93,7 +93,7 @@
 %endif
 
 %global go_api 1.26
-%global go_version 1.26.5
+%global go_version 1.26.7
 %global version %{go_version}
 %global pkg_release 1
 
@@ -587,6 +587,10 @@ cd ..
 %endif
 
 %changelog
+* Fri Aug 21 2026 Archana <aravinda@redhat.com> - 1.26.7-1
+- Update to Go 1.26.7 (fips-1)
+- Resolves: RHEL-246426
+
 * Wed Jul 08 2026 dbenoit <dbenoit@redhat.com> - 1.26.5-1
 - Update to Go 1.26.5 (fips-1)
 - Resolves: RHEL-193478
