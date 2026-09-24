@@ -109,14 +109,14 @@
 %global go_api 1.26
 %global go_version 1.26.7
 %global version %{go_version}
-%global pkg_release 1
+%global pkg_release 2
 
 # LLVM compiler-rt version for race detector
 %global llvm_compiler_rt_version 18.1.8
 
 Name:           golang
 Version:	%{version}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        The Go Programming Language
 # source tree includes several copies of Mark.Twain-Tom.Sawyer.txt under Public Domain
 License:        BSD and Public Domain
@@ -622,6 +622,10 @@ cd ..
 %endif
 
 %changelog
+* Tue Sep 22 2026 David Benoit <dbenoit> - 1.26.7-2
+- Update to Go 1.26.7 (fips-2)
+- Resolves: RHEL-266348
+
 * Fri Aug 21 2026 Archana <aravinda@redhat.com> - 1.26.7-1
 - Update to Go 1.26.7 (fips-1)
 - Resolves: RHEL-246425
