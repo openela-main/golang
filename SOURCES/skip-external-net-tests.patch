@@ -1,0 +1,15 @@
+diff --git a/src/internal/testenv/testenv.go b/src/internal/testenv/testenv.go
+index 5aeb5815ad..5bc39455dd 100644
+--- a/src/internal/testenv/testenv.go
++++ b/src/internal/testenv/testenv.go
+@@ -309,6 +309,10 @@ func HasExternalNetwork() bool {
+ // external (non-localhost) networks.
+ // If not, MustHaveExternalNetwork calls t.Skip with an explanation.
+ func MustHaveExternalNetwork(t testing.TB) {
++	if os.Getenv("GO_TEST_HAS_EXTERNAL_NETWORK") == "0" {
++		t.Helper()
++		t.Skipf("skipping test: env indicates no external network")
++	}
+ 	if runtime.GOOS == "js" || runtime.GOOS == "wasip1" {
+ 		t.Helper()
+ 		t.Skipf("skipping test: no external network on %s", runtime.GOOS)

@@ -106,8 +106,8 @@
 %endif
 %endif
 
-%global go_api 1.26
-%global go_version 1.26.10
+%global go_api 1.27
+%global go_version 1.27.3
 %global version %{go_version}
 %global pkg_release 1
 
@@ -128,7 +128,7 @@ Source0:        https://github.com/golang/go/archive/refs/tags/go%{version}.tar.
 # located at https://github.com/golang-fips/openssl-fips,
 # And pre-genetated patches to set up the module for a given
 # Go release are located at https://github.com/golang-fips/go.
-Source1:	https://github.com/golang-fips/go/archive/refs/tags/go%{version}-%{pkg_release}-openssl-fips.tar.gz
+Source1:	https://github.com/golang-fips/go/archive/refs/tags/go%{version}-%{pkg_release}-hostfips-release.tar.gz
 # make possible to override default traceback level at build time by setting build tag rpm_crashtraceback
 Source2:        fedora.go
 Source3: 	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{llvm_compiler_rt_version}/compiler-rt-%{llvm_compiler_rt_version}.src.tar.xz
@@ -171,6 +171,7 @@ Patch6:		skip_TestCrashDumpsAllThreads.patch
 # Related: https://sourceware.org/bugzilla/show_bug.cgi?id=33204
 Patch7:     revert_dwarf5.patch
 Patch8:     skip-TestTerminalSignal-in-container.patch
+Patch9:		skip-external-net-tests.patch
 
 # Having documentation separate was broken
 Obsoletes:      %{name}-docs < 1.1-4
@@ -208,6 +209,9 @@ BuildArch:     noarch
 Summary:       Golang compiler tests for stdlib
 Requires:      %{name} = %{version}-%{release}
 BuildArch:     noarch
+# testdata contains ELF files (e.g. debug/elf/testdata/libtiffxx.so_)
+# whose SONAMEs would otherwise be picked up as spurious library provides
+AutoProv:      no
 
 %description   tests
 %{summary}.
@@ -272,7 +276,7 @@ Binary library objects for Go's race detector.
 pushd ..
 tar -xf %{SOURCE1}
 popd
-patch_dir="../go-go%{version}-%{pkg_release}-openssl-fips/patches"
+patch_dir="../go-go%{version}-%{pkg_release}-hostfips-release/patches"
 # Add --no-backup-if-mismatch option to avoid creating .orig temp files
 for p in "$patch_dir"/*.patch; do
 	echo "Applying $p"
@@ -280,7 +284,7 @@ for p in "$patch_dir"/*.patch; do
 done
 
 # Configure crypto tests
-pushd ../go-go%{version}-%{pkg_release}-openssl-fips
+pushd "../go-go%{version}-%{pkg_release}-hostfips-release"
 ln -s ../go-go%{version} go
 ./scripts/configure-crypto-tests.sh
 popd
@@ -534,21 +538,8 @@ export GO_TEST_RUN=""
 %if %{fail_on_tests}
 
 ./run.bash --no-rebuild -v -v -v -k $GO_TEST_RUN
-
-# Run tests with FIPS enabled.
-export GOLANG_FIPS=1
-export OPENSSL_FORCE_FIPS_MODE=1
-pushd crypto
-  # Run all crypto tests but skip TLS, we will run FIPS specific TLS tests later
-  FIPS_SKIP="TestEd25519Vectors|TestACVP|TestGCMNoncesFIPSV126|TestGCMNoncesFIPSV1|TestWithoutEnforcement|TestCASTPasses|TestCASTFailures|TestIntegrityCheck|TestBetterTLS"
-  go test -timeout 50m $(go list ./... | grep -v tls) -v -skip="$FIPS_SKIP"
-  # Check that signature functions have parity between boring and notboring
-  CGO_ENABLED=0 go test -timeout 50m $(go list ./... | grep -v tls) -v -skip="$FIPS_SKIP"
-popd
-# Run all FIPS specific TLS tests
-pushd crypto/tls
-  go test -v -run "Boring"
-popd
+  # Run tests with FIPS enabled.
+  GO_TEST_HAS_EXTERNAL_NETWORK=0 ../../go-go%{version}-%{pkg_release}-hostfips-release/scripts/crypto-test.sh
 %else
 ./run.bash --no-rebuild -v -v -v -k || :
 %endif
@@ -622,26 +613,42 @@ cd ..
 %endif
 
 %changelog
-* Tue Oct 20 2026 David Benoit <dbenoit@redhat.com> - 1.26.10-1
-- Update to Go 1.26.10 (fips-1)
-- Resolves: RHEL-287192
+* Tue Oct 20 2026 David Benoit <dbenoit@redhat.com> - 1.27.3-1
+- Update Go to 1.27.3 (hostfips-1)
+- Remove experimental ML-DSA nofips package copy
+- Disable AutoProv in golang-tests package
+- Related: RHEL-281450
 
-* Tue Sep 22 2026 David Benoit <dbenoit> - 1.26.7-2
-- Update to Go 1.26.7 (fips-2)
-- Resolves: RHEL-266348
+* Tue Oct 13 2026 David Benoit <dbenoit@redhat.com> - 1.27.2-1
+- Update Go to 1.27.2 (hostfips-1)
+- Switch to hostfips tag scheme
+- Migrate %check to use crypto-test.sh
+- Add env lookup in testenv.MustHaveExternalNetwork()
+- Resolves: RHEL-281450
 
 * Fri Aug 21 2026 Archana <aravinda@redhat.com> - 1.26.7-1
 - Update to Go 1.26.7 (fips-1)
-- Resolves: RHEL-246425
-
-* Tue Aug 11 2026 dbenoit <dbenoit@redhat.com> - 1.26.5-2
-- Update to Go 1.26.5 (fips-2)
-- Limit RAND_bytes concurrency
-- Resolves: RHEL-215845
+- Resolves: RHEL-246424
 
 * Wed Jul 08 2026 dbenoit <dbenoit@redhat.com> - 1.26.5-1
 - Update to Go 1.26.5 (fips-1)
-- Resolves: RHEL-193476
+- Resolves: RHEL-193475
+
+* Wed Jun 10 2026 dbenoit <dbenoit@redhat.com> - 1.26.4-1
+- Update to Go 1.26.4 (fips-1)
+- Resolves: RHEL-183349
+
+* Tue May 12 2026 dbenoit <dbenoit@redhat.com> - 1.26.3-1
+- Update to Go 1.26.3 (fips-1)
+- Resolves: RHEL-175607
+
+* Wed Apr 22 2026 dbenoit <dbenoit@redhat.com> - 1.26.2-1
+- Update to Go 1.26.2 (fips-2)
+- Resolves: RHEL-169929
+
+* Fri Mar 27 2026 Alejandro Sáez <asm@redhat.com> - 1.26.1-1
+- Update to Go 1.26.1
+- Resolves: RHEL-153434
 
 * Thu Feb 12 2026 dbenoit <dbenoit@redhat.com> - 1.25.7-1
 - Update to Go 1.25.7 (fips-1)
