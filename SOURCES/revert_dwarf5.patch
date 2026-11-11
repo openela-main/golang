@@ -1,8 +1,8 @@
 diff --git a/src/internal/buildcfg/exp.go b/src/internal/buildcfg/exp.go
-index aa41986..f1a8ba8 100644
+index bf411a8dbb..91709cd1ee 100644
 --- a/src/internal/buildcfg/exp.go
 +++ b/src/internal/buildcfg/exp.go
-@@ -69,21 +69,11 @@ func ParseGOEXPERIMENT(goos, goarch, goexp string) (*ExperimentFlags, error) {
+@@ -67,21 +67,10 @@ func ParseGOEXPERIMENT(goos, goarch, goexp string) (*ExperimentFlags, error) {
  		regabiSupported = true
  	}
  
@@ -16,12 +16,12 @@ index aa41986..f1a8ba8 100644
 -	// support the necessary section subtypes for DWARF-specific
 -	// things like .debug_addr (needed for DWARF 5).
 -	dwarf5Supported := (goos != "darwin" && goos != "ios" && goos != "aix")
- 
+-
  	baseline := goexperiment.Flags{
- 		RegabiWrappers:       regabiSupported,
- 		RegabiArgs:           regabiSupported,
--		Dwarf5:               dwarf5Supported,
-+		Dwarf5:               false,
- 		RandomizedHeapBase64: true,
- 		GreenTeaGC:           true,
- 	}
+ 		RegabiWrappers:        regabiSupported,
+ 		RegabiArgs:            regabiSupported,
+-		Dwarf5:                dwarf5Supported,
++		Dwarf5:                false,
+ 		RandomizedHeapBase64:  true,
+ 		GreenTeaGC:            true,
+ 		JSONv2:                true,

@@ -1,0 +1,56 @@
+diff --git a/patches/001-host-fips-auto.patch b/patches/001-host-fips-auto.patch
+index b1472e7..0a0a454 100644
+--- a/patches/001-host-fips-auto.patch
++++ b/patches/001-host-fips-auto.patch
+@@ -7,7 +7,7 @@ index 78d55bec55..52630593a0 100644
+  	b = os.Getenv("GOFIPS140")
+  	if b == "" {
+ -		b = "off"
+-+		b = "certified"
+++		b = "inprocess"
+  	}
+  	gofips140 = b
+  
+diff --git a/scripts/crypto-test.sh b/scripts/crypto-test.sh
+index 2324726..1a7c853 100755
+--- a/scripts/crypto-test.sh
++++ b/scripts/crypto-test.sh
+@@ -2,6 +2,8 @@
+ 
+ set -euo pipefail
+ 
++DEFAULT_FIPS140=inprocess
++
+ SUITES=crypto,tls
+ MODES=all
+ VERBOSE=
+@@ -52,7 +54,7 @@ export GOCACHE=/tmp/go-cache
+ 
+ # The matrix owns these settings. In particular, inherited -run, -skip, -short,
+ # or build tags in GOFLAGS must not silently remove tests from an "all" run.
+-export GOFLAGS= GOEXPERIMENT= GODEBUG= GOFIPS140=certified
++export GOFLAGS= GOEXPERIMENT= GODEBUG= GOFIPS140=${DEFAULT_FIPS140}
+ export GOLANG_NATIVE_HOSTFIPS_OVERRIDE=0 GOTOOLCHAIN=local
+ unset ACVP_WRAPPER GOENTROPYSOURCEACVP GONOPAAPAI
+ 
+@@ -234,7 +236,7 @@ run_build_defaults() (
+   unset GOFIPS140
+   export GOENV=off
+   local info snapshot
+-  snapshot=$(cat "$GOROOT/lib/fips140/certified.txt") || return 1
++  snapshot=$(cat "$GOROOT/lib/fips140/${DEFAULT_FIPS140}.txt") || return 1
+   "$GO" test -c -o "$WORK/sha256.test" crypto/sha256 || return 1
+   info=$("$GO" version -m "$WORK/sha256.test") || return 1
+   printf '%s\n' "$info"
+@@ -251,9 +253,9 @@ run_build_defaults() (
+ run_cmd_go() {
+   local info snapshot
+   info=$("$GO" version -m "$GO") || return 1
+-  snapshot=$(cat "$GOROOT/lib/fips140/certified.txt") || return 1
++  snapshot=$(cat "$GOROOT/lib/fips140/${DEFAULT_FIPS140}.txt") || return 1
+   if [[ "$info" != *"DefaultGODEBUG=fips140=auto"* || "$info" != *"GOFIPS140=$snapshot"* ]]; then
+-    echo "FAIL: toolchain must embed auto FIPS and the certified snapshot" >&2
++    echo "FAIL: toolchain must embed auto FIPS and the ${DEFAULT_FIPS140} snapshot" >&2
+     printf '%s\n' "$info"
+     return 1
+   fi
