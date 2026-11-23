@@ -93,7 +93,7 @@
 %endif
 
 %global go_api 1.26
-%global go_version 1.26.10
+%global go_version 1.26.11
 %global version %{go_version}
 %global pkg_release 1
 
@@ -290,7 +290,7 @@ cat /proc/meminfo
 
 # Build race detector .syso's from llvm sources
 # The race detector requests a -fno-exceptions build.
-%global tsan_buildflags %(rpm -D 'toolchain clang' -E '%{optflags}' | sed 's/-fexceptions//')
+%global tsan_buildflags %(rpm -D 'toolchain clang' -E '%{optflags}' | sed -e 's/-fexceptions//' -e 's/-flto=[^ ]*//g' -e 's/-ffat-lto-objects//g' -e 's/-flto//g' -e 's/  */ /g')
 %global tsan_optflag -O1
 mkdir ../llvm
 
@@ -587,6 +587,10 @@ cd ..
 %endif
 
 %changelog
+* Fri Nov 20 2026 Archana <aravinda@redhat.com> - 1.26.11-1
+- Update to Go 1.26.11 (fips-1)
+- Resolves: RHEL-311806
+
 * Tue Oct 20 2026 David Benoit <dbenoit@redhat.com> - 1.26.10-1
 - Update to Go 1.26.10 (fips-1)
 - Resolves: RHEL-287193
